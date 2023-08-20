@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 def run(ini_location):
     """Simple program that greets NAME for a total of COUNT times."""
 
+    logger.setLevel(logging.INFO)
+
     logger.info("Starting server")
     env = bootstrap(ini_location)
 
