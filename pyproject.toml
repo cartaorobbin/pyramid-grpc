@@ -108,7 +108,7 @@ branch = true
 source = ["pyramid_grpc"]
 
 [tool.poetry.scripts]
-grpc-server = 'grpc.grpc.server:run'
+grpc-server = 'pyramid_grpc.server:run'
 
 [tool.deptry]
 extend_exclude = [
