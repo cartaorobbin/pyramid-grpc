@@ -1,12 +1,11 @@
-import re
-import click
-import grpc
-from pyramid.paster import bootstrap, setup_logging
-from pyramid_grpc.main import serve, build_interceptors
-
+import logging
 from concurrent import futures
 
-import logging
+import click
+import grpc
+from pyramid.paster import bootstrap
+
+from pyramid_grpc.main import build_interceptors, serve
 
 logger = logging.getLogger(__name__)
 
@@ -21,11 +20,11 @@ def run(ini_location):
     logger.info("Starting server")
     env = bootstrap(ini_location)
 
-    registry = env["registry"]
+    env["registry"]
     app = env["app"]
-    root = env["root"]
-    request = env["request"]
-    closer = env["closer"]
+    env["root"]
+    env["request"]
+    env["closer"]
 
     server = grpc.server(
         futures.ThreadPoolExecutor(max_workers=10),

@@ -1,6 +1,6 @@
 from typing import Any, Callable
-from grpc import ServicerContext, HandlerCallDetails
-from pyramid.scripting import prepare
+
+from grpc import ServicerContext
 from grpc_interceptor import ServerInterceptor
 
 

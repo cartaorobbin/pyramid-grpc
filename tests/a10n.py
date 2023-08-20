@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-import secrets
-from pyramid.authorization import ACLHelper, Everyone, Authenticated
-from pyramid_jwt import JWTAuthenticationPolicy
 
+from pyramid.authorization import ACLHelper, Authenticated, Everyone
+from pyramid_jwt import JWTAuthenticationPolicy
 
 
 @dataclass

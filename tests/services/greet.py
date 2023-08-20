@@ -1,7 +1,7 @@
-from pyramid_grpc.decorators import config_grpc_service, config_grpc_call
-from tests.services import greet_pb2_grpc
-from tests.services import greet_pb2
 from pyramid.authorization import Allow
+
+from pyramid_grpc.decorators import config_grpc_call, config_grpc_service
+from tests.services import greet_pb2, greet_pb2_grpc
 
 
 class Context:
@@ -17,8 +17,8 @@ class GreetServicer(greet_pb2_grpc.GreeterServicer):
     @config_grpc_call()
     def SayHello(self, request, context):
         return greet_pb2.HelloReply(message=f"Hi {request.name}! I'm {context.pyramid_request.host}")
-    
-    @config_grpc_call(permission='view', factory=Context)
+
+    @config_grpc_call(permission="view", factory=Context)
     def SecureSayHello(self, request, context):
         return greet_pb2.HelloReply(message=f"Hi {request.name}! I'm {context.pyramid_request.host}")
 
