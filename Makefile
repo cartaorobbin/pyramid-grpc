@@ -17,7 +17,7 @@ check: ## Run code quality tools.
 	@poetry run deptry .
 
 .PHONY: test
-test: ## Test the code with pytest
+test: clean-pyc ## Test the code with pytest
 	@echo "🚀 Testing code: Running pytest"
 	@poetry run pytest --cov --cov-config=pyproject.toml --cov-report=xml
 

@@ -12,7 +12,7 @@ from tests.a10n import SecurityPolicy
 
 
 pytest_plugins = [
-    "tests.plugins.jwt",
+    "tests.plugins.jwt_fixtures",
 ]
 
 
