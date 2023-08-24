@@ -1,6 +1,7 @@
 import logging
 from concurrent import futures
 
+import sys
 import click
 import grpc
 from pyramid.paster import bootstrap
@@ -18,6 +19,13 @@ def run(ini_location):
     logger.setLevel(logging.INFO)
 
     logger.info("Starting server")
+
+    handler = logging.StreamHandler(sys.stdout)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler)
+
+    logger.info("Starting Server ...")
+
     env = bootstrap(ini_location)
 
     env["registry"]
