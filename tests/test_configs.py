@@ -66,3 +66,19 @@ def test_config_with_add_interceptor_twice(private_key, public_key):
     assert app.registry.grpc_interceptors[0].__class__ == RequestInterseptor
     assert app.registry.grpc_interceptors[1].__class__ == TransactionInterseptor
     assert app.registry.grpc_interceptors[2].__class__ == TransactionInterseptor
+
+
+def test_config_with_configure_grpc(private_key, public_key, grpc_server):
+    with Configurator() as config:
+        config.get_settings()["jwt.private_key"] = private_key
+        config.get_settings()["jwt.public_key"] = public_key
+        config.get_settings()["sqlalchemy.url"] = "sqlite:////tmp/testing.sqlite"
+        # config.get_settings()["tm.manager_hook"] = "pyramid_tm.explicit_manager"
+        # config.include("pyramid_tm")
+        config.include("pyramid_grpc")
+        config.configure_grpc(grpc_server)
+
+    app = config.make_wsgi_app()
+    assert len(app.registry.grpc_interceptors) == 1
+    assert app.registry.grpc_interceptors[0].__class__ == RequestInterseptor
+    assert id(app.registry.grpc_server) == id(grpc_server)

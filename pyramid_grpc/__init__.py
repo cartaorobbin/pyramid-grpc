@@ -12,6 +12,10 @@ from pyramid_grpc.interseptors.transaction import TransactionInterseptor
 
 logger = logging.getLogger(__name__)
 
+ACTION_DEFAUTL_ORDER = 100
+ACTION_ADD_INSPECTOR_ORDER = 90
+ACTION_CONFIGURE_SERVER_ORDER = 80
+
 
 def register_interseptor(config, interceptor: ServerInterceptor, position: str = "bottom"):
     if inspect.isclass(interceptor):
@@ -36,13 +40,15 @@ def add_grpc_interceptors(config, interceptor: ServerInterceptor, position: str 
     config.action(
         f"pgrcp_interseptors_{id_}",
         partial(register_interseptor, config=config, interceptor=interceptor, position=position),
-        order=90,
+        order=ACTION_ADD_INSPECTOR_ORDER,
     )
 
 
 def register_server(config, server: grpc.Server = None):
-    max_workers = config.registry.settings.get("grpc.max_workers", 10)
+    if hasattr(config.registry, "grpc_server"):
+        return
 
+    max_workers = config.registry.settings.get("grpc.max_workers", 10)
     server = server or grpc.server(
         futures.ThreadPoolExecutor(max_workers=max_workers),
         interceptors=config.registry.grpc_interceptors,
@@ -58,7 +64,9 @@ def register_server(config, server: grpc.Server = None):
 
 
 def configure_grpc(config, server: grpc.Server = None):
-    config.action("pgrcp_server", partial(register_server, config=config, server=server), order=91)
+    config.action(
+        "pgrcp_server", partial(register_server, config=config, server=server), order=ACTION_CONFIGURE_SERVER_ORDER
+    )
 
 
 def default_config(config):
@@ -76,4 +84,4 @@ def includeme(config):
 
     config.add_directive("add_grpc_interceptors", add_grpc_interceptors)
 
-    config.action("pgrcp_default", partial(default_config, config), order=92)
+    config.action("pgrcp_default", partial(default_config, config), order=ACTION_DEFAUTL_ORDER)

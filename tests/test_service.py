@@ -12,7 +12,7 @@ def test_service(app, greet_stub):
     )
     request = HelloRequest(name="Tomas")
     response = greet_stub.SayHello(request, metadata=metadata)
-    assert response.message == "Hi Tomas! I'm example.com"
+    assert response.message == "Hi Tomas! I'm localhost:80"
 
 
 def test_service_with_permissions(app, greet_stub, auth_token):
@@ -27,4 +27,4 @@ def test_service_with_permissions(app, greet_stub, auth_token):
 
     request = HelloRequest(name="Tomas")
     response = greet_stub.SecureSayHello(request, metadata=metadata)
-    assert response.message == "Hi Tomas! I'm example.com"
+    assert response.message == "Hi Tomas! I'm localhost:80"

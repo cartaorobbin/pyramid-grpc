@@ -5,8 +5,6 @@ from pyramid.config import Configurator
 from sqlalchemy import engine_from_config
 from sqlalchemy.orm import sessionmaker
 
-from pyramid_grpc.interseptors.request import RequestInterseptor
-from pyramid_grpc.interseptors.transaction import TransactionInterseptor
 from tests.a10n import SecurityPolicy
 
 pytest_plugins = [
@@ -53,10 +51,10 @@ def app_config(private_key, public_key):
         config.get_settings()["sqlalchemy.url"] = "sqlite:////tmp/testing.sqlite"
         config.get_settings()["tm.manager_hook"] = "pyramid_tm.explicit_manager"
         config.include("pyramid_tm")
-        config.include("pyramid_grpc")
         config.include(".services")
         config.include("pyramid_jwt")
         config.set_security_policy(SecurityPolicy(config.get_settings()))
+        config.include("pyramid_grpc")
     return config
 
 
@@ -78,16 +76,16 @@ def grpc_server(grpc_addr, app):
     server.stop(grace=None)
 
 
-@pytest.fixture(scope="module")
-def grpc_interceptors(app_config, dbsession):
-    request_intersector = RequestInterseptor(
-        app_config.registry,
-        extra_environ={"HTTP_HOST": "example.com"},
-    )
+# @pytest.fixture(scope="module")
+# def grpc_interceptors(app_config, dbsession):
+#     request_intersector = RequestInterseptor(
+#         app_config.registry,
+#         extra_environ={"HTTP_HOST": "example.com"},
+#     )
 
-    transaction_intersector = TransactionInterseptor(app_config.registry)
+#     transaction_intersector = TransactionInterseptor(app_config.registry)
 
-    return [request_intersector, transaction_intersector]
+#     return [request_intersector, transaction_intersector]
 
 
 @pytest.fixture
