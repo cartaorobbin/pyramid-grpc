@@ -24,5 +24,5 @@ class GreetServicer(greet_pb2_grpc.GreeterServicer):
 
 
 @config_grpc_service
-def configure(server, pyramid_app):
+def configure(server):
     greet_pb2_grpc.add_GreeterServicer_to_server(GreetServicer(), server)

@@ -5,9 +5,9 @@ from grpc_interceptor import ServerInterceptor
 
 
 class TransactionInterseptor(ServerInterceptor):
-    def __init__(self, pyramid_app, extra_environ=None):
-        self.pyramid_app = pyramid_app
-        # self.session = pyramid_app.registry["dbsession_factory"]()
+    def __init__(self, registry, extra_environ=None):
+        self.registry = registry
+        self.extra_environ = extra_environ or {}
 
     def intercept(
         self,

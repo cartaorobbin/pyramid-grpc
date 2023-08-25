@@ -30,25 +30,23 @@ def tm():
 
 
 @pytest.fixture(scope="module")
-def dbsession(app, tm):
-    engine = get_engine(app.registry.settings)
+def dbsession(app_config, tm):
+    engine = get_engine(app_config.registry.settings)
 
     factory = sessionmaker()
     factory.configure(bind=engine)
-    app.registry["dbsession_factory"] = factory
+    app_config.registry["dbsession_factory"] = factory
 
-    session_factory = app.registry["dbsession_factory"]
+    session_factory = app_config.registry["dbsession_factory"]
 
     _session = session_factory()
 
     zope.sqlalchemy.register(_session, transaction_manager=tm)
     return dbsession
 
-    return  # models.get_tm_session(session_factory, tm)
-
 
 @pytest.fixture(scope="module")
-def app(private_key, public_key):
+def app_config(private_key, public_key):
     with Configurator() as config:
         config.get_settings()["jwt.private_key"] = private_key
         config.get_settings()["jwt.public_key"] = public_key
@@ -59,33 +57,49 @@ def app(private_key, public_key):
         config.include(".services")
         config.include("pyramid_jwt")
         config.set_security_policy(SecurityPolicy(config.get_settings()))
-        app = config.make_wsgi_app()
+    return config
+
+
+@pytest.fixture(scope="module")
+def app(app_config, _grpc_server):
+    app_config.configure_grpc(_grpc_server)
+    app = app_config.make_wsgi_app()
 
     return app
 
 
 @pytest.fixture(scope="module")
-def grpc_interceptors(app, dbsession):
+def grpc_server(grpc_addr, app):
+    server = app.registry.grpc_server
+
+    server.add_insecure_port(grpc_addr)
+    server.start()
+    yield server
+    server.stop(grace=None)
+
+
+@pytest.fixture(scope="module")
+def grpc_interceptors(app_config, dbsession):
     request_intersector = RequestInterseptor(
-        app,
+        app_config.registry,
         extra_environ={"HTTP_HOST": "example.com"},
     )
 
-    transaction_intersector = TransactionInterseptor(app)
+    transaction_intersector = TransactionInterseptor(app_config.registry)
 
     return [request_intersector, transaction_intersector]
 
 
-@pytest.fixture(scope="module")
-def grpc_server(_grpc_server, grpc_addr, app):
-    from pyramid_grpc.main import configure_server
+# @pytest.fixture(scope="module")
+# def grpc_server(_grpc_server, grpc_addr, app):
+#     from pyramid_grpc.main import configure_server
 
-    configure_server(pyramid_app=app, grpc_server=_grpc_server)
+#     configure_server(pyramid_app=app, grpc_server=_grpc_server)
 
-    _grpc_server.add_insecure_port(grpc_addr)
-    _grpc_server.start()
-    yield _grpc_server
-    _grpc_server.stop(grace=None)
+#     _grpc_server.add_insecure_port(grpc_addr)
+#     _grpc_server.start()
+#     yield _grpc_server
+#     _grpc_server.stop(grace=None)
 
 
 @pytest.fixture

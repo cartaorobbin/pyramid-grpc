@@ -1,20 +1,37 @@
-from pyramid_grpc.decorators import get_services
-from pyramid_grpc.interseptors.request import RequestInterseptor
+import logging
+
+import click
+from pyramid.paster import bootstrap, setup_logging
+
+logger = logging.getLogger(__name__)
 
 
-def build_interceptors(pyramid_app):
-    return [RequestInterseptor(pyramid_app)]
+def main(ini_location):
+    """Simple program that greets NAME for a total of COUNT times."""
+
+    logger.info("Setting up pyramid")
+    setup_logging(ini_location)
+    env = bootstrap(ini_location)
+
+    logger.info("Starting Server ...")
+
+    env["registry"]
+    app = env["app"]
+    env["root"]
+    env["request"]
+    env["closer"]
+
+    return app
 
 
-def configure_server(pyramid_app, grpc_server):
-    for func in get_services():
-        func(grpc_server, pyramid_app)
-
-
-def serve(pyramid_app, grpc_server):
-    configure_server(pyramid_app, grpc_server)
-    port = pyramid_app.registry.settings.get("grpc.port", "50051")
-    grpc_server.add_insecure_port(f"[::]:{port}")
-
+@click.command()
+@click.argument("ini_location")
+def run(ini_location):
+    app = main(ini_location)
+    grpc_server = app.registry.grpc_server
     grpc_server.start()
     grpc_server.wait_for_termination()
+
+
+if __name__ == "__main__":
+    run()

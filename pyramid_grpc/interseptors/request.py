@@ -4,9 +4,9 @@ from grpc import ServicerContext
 from grpc_interceptor import ServerInterceptor
 
 
-def _get_authorization(meta):
+def _get_authorization(meta, auth_header):
     for item in meta:
-        if item.key.lower() == "authorization":
+        if item.key.lower() == auth_header:
             return item.value
 
 
@@ -17,8 +17,8 @@ def _make_request(registry):
 
 
 class RequestInterseptor(ServerInterceptor):
-    def __init__(self, pyramid_app, extra_environ=None):
-        self.pyramid_app = pyramid_app
+    def __init__(self, registry, extra_environ=None):
+        self.pyramid_regsitry = registry
         self.extra_environ = extra_environ or {}
 
     def intercept(
@@ -28,9 +28,11 @@ class RequestInterseptor(ServerInterceptor):
         context: ServicerContext,
         method_name: str,
     ) -> Any:
-        pyramid_request = _make_request(self.pyramid_app.registry)
+        pyramid_request = _make_request(self.pyramid_regsitry)
         pyramid_request.environ.update(self.extra_environ)
-        auth = _get_authorization(context.invocation_metadata())
+        auth = _get_authorization(
+            context.invocation_metadata(), self.pyramid_regsitry.settings.get("grpc.auth_header", "authorization")
+        )
         if auth:
             pyramid_request.environ.update({"HTTP_AUTHORIZATION": auth})
 
