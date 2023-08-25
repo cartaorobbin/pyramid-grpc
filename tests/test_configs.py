@@ -1,4 +1,5 @@
 from pyramid.config import Configurator
+
 from pyramid_grpc.interseptors.request import RequestInterseptor
 from pyramid_grpc.interseptors.transaction import TransactionInterseptor
 
