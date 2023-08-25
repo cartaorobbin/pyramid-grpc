@@ -90,18 +90,6 @@ def grpc_interceptors(app_config, dbsession):
     return [request_intersector, transaction_intersector]
 
 
-# @pytest.fixture(scope="module")
-# def grpc_server(_grpc_server, grpc_addr, app):
-#     from pyramid_grpc.main import configure_server
-
-#     configure_server(pyramid_app=app, grpc_server=_grpc_server)
-
-#     _grpc_server.add_insecure_port(grpc_addr)
-#     _grpc_server.start()
-#     yield _grpc_server
-#     _grpc_server.stop(grace=None)
-
-
 @pytest.fixture
 def greet_stub(grpc_channel):
     from tests.services.greet_pb2_grpc import GreeterStub
