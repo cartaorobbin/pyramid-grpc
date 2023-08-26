@@ -1,42 +1,39 @@
-
 # grpc fixtures
 import copy
-from unittest.mock import PropertyMock
-import pytest
-import socket
-from pytest_grpc.plugin import FakeServer, FakeChannel
 from concurrent import futures
+from contextlib import suppress
+from unittest.mock import PropertyMock
+
 import grpc
+import pytest
+from pytest_grpc.plugin import FakeChannel, FakeServer
 
-from pyramid_grpc.interseptors.transaction import TransactionInterseptor
-from pyramid_grpc.interseptors.request import RequestInterseptor
 
-
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def grpc_add_to_server():
     def lala(*args, **kwargs):
         pass
+
     return lala
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def grpc_servicer():
-    return 
+    return
 
 
-
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def grpc_is_fake(request):
-    return request.config.getoption('grpc-fake')
+    return request.config.getoption("grpc-fake")
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def _pyramid_grpc_server(request, grpc_is_fake, grpc_addr, grpc_interceptors):
-    max_workers = request.config.getoption('grpc-max-workers')
-    try:
+    max_workers = request.config.getoption("grpc-max-workers")
+
+    with suppress(AttributeError):
         max_workers = max(request.module.grpc_max_workers, max_workers)
-    except AttributeError:
-        pass
+
     pool = futures.ThreadPoolExecutor(max_workers=max_workers)
     if grpc_is_fake:
         server = FakeServer(pool)
@@ -47,7 +44,7 @@ def _pyramid_grpc_server(request, grpc_is_fake, grpc_addr, grpc_interceptors):
     pool.shutdown(wait=False)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def pyramid_grpc_create_channel(grpc_is_fake, grpc_addr, pyramid_grpc_server):
     def _create_channel(credentials=None, options=None):
         if grpc_is_fake:
@@ -59,7 +56,7 @@ def pyramid_grpc_create_channel(grpc_is_fake, grpc_addr, pyramid_grpc_server):
     return _create_channel
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def pyramid_grpc_channel(pyramid_grpc_create_channel):
     with pyramid_grpc_create_channel() as channel:
         yield channel
@@ -77,14 +74,13 @@ def pyramid_grpc_server(grpc_addr, app):
 
 @pytest.fixture()
 def transaction_interseptor_extra_environ_mock(mocker):
-
     def _mock(value):
         mocker.patch(
             "pyramid_grpc.interseptors.request.RequestInterseptor.extra_environ",
             new_callable=PropertyMock(return_value=value),
         )
-    return _mock
 
+    return _mock
 
 
 class GrpcTestApp:
@@ -98,10 +94,7 @@ class GrpcTestApp:
         data = copy.copy(self.extra_environ)
         data.update(kwargs)
         return tuple((k, v) for k, v in data.items())
-    
-    def __call__(self, stub, method, request, **kwargs):
 
+    def __call__(self, stub, method, request, **kwargs):
         callable_ = getattr(stub(self.channel), method)
         return callable_(request, metadata=self.metadata(**kwargs))
-
-
