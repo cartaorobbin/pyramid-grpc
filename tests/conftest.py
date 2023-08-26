@@ -1,19 +1,33 @@
 import pytest
 import transaction
-import zope.sqlalchemy
 from pyramid.config import Configurator
-from sqlalchemy import engine_from_config
-from sqlalchemy.orm import sessionmaker
 
+import tests.models as models
 from tests.a10n import SecurityPolicy
+from tests.plugins.grpc_fixtures import GrpcTestApp
 
 pytest_plugins = [
     "tests.plugins.jwt_fixtures",
+    "tests.plugins.grpc_fixtures",
 ]
 
 
-def get_engine(settings, prefix="sqlalchemy."):
-    return engine_from_config(settings, prefix)
+@pytest.fixture(scope="session")
+def dbengine():
+    engine = models.get_engine({"sqlalchemy.url": "sqlite:////tmp/testing.sqlite"})
+
+    models.meta.Base.metadata.drop_all(bind=engine)
+
+    # run migrations to initialize the database
+    # depending on how we want to initialize the database from scratch
+    # we could alternatively call:
+    models.meta.Base.metadata.create_all(bind=engine)
+
+    # alembic.command.upgrade(alembic_cfg, "head")
+
+    yield engine
+
+    models.meta.Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture(scope="module")
@@ -27,20 +41,14 @@ def tm():
     tm.abort()
 
 
-@pytest.fixture(scope="module")
-def dbsession(app_config, tm):
-    engine = get_engine(app_config.registry.settings)
+@pytest.fixture
+def dbsession(app, tm):
+    from tests.models import get_tm_session
 
-    factory = sessionmaker()
-    factory.configure(bind=engine)
-    app_config.registry["dbsession_factory"] = factory
-
-    session_factory = app_config.registry["dbsession_factory"]
-
-    _session = session_factory()
-
-    zope.sqlalchemy.register(_session, transaction_manager=tm)
-    return dbsession
+    session_factory = app.registry["dbsession_factory"]
+    session = get_tm_session(session_factory, tm)
+    yield session
+    session.close()
 
 
 @pytest.fixture(scope="module")
@@ -52,6 +60,7 @@ def app_config(private_key, public_key):
         config.get_settings()["tm.manager_hook"] = "pyramid_tm.explicit_manager"
         config.include("pyramid_tm")
         config.include(".services")
+        config.include(".models")
         config.include("pyramid_jwt")
         config.set_security_policy(SecurityPolicy(config.get_settings()))
         config.include("pyramid_grpc")
@@ -59,7 +68,7 @@ def app_config(private_key, public_key):
 
 
 @pytest.fixture(scope="module")
-def app(app_config, _grpc_server):
+def app(dbengine, app_config, _grpc_server):
     app_config.configure_grpc(_grpc_server)
     app = app_config.make_wsgi_app()
 
@@ -76,20 +85,34 @@ def grpc_server(grpc_addr, app):
     server.stop(grace=None)
 
 
-# @pytest.fixture(scope="module")
-# def grpc_interceptors(app_config, dbsession):
-#     request_intersector = RequestInterseptor(
-#         app_config.registry,
-#         extra_environ={"HTTP_HOST": "example.com"},
-#     )
-
-#     transaction_intersector = TransactionInterseptor(app_config.registry)
-
-#     return [request_intersector, transaction_intersector]
-
-
 @pytest.fixture
 def greet_stub(grpc_channel):
     from tests.services.greet_pb2_grpc import GreeterStub
 
     return GreeterStub(grpc_channel)
+
+
+@pytest.fixture
+def grpc_testapp(
+    app, pyramid_grpc_server, pyramid_grpc_channel, transaction_interseptor_extra_environ_mock, tm, dbsession
+):
+    # override request.dbsession and request.tm with our own
+    # externally-controlled values that are shared across requests but aborted
+    # at the end
+
+    extra_environ = {
+        "http_host": "example.com",
+        "tm.active": "True",
+        "tm.manager": tm,
+        "app.dbsession": dbsession,
+    }
+
+    testapp = GrpcTestApp(
+        app,
+        server=pyramid_grpc_server,
+        channel=pyramid_grpc_channel,
+    )
+
+    transaction_interseptor_extra_environ_mock(extra_environ)
+
+    return testapp

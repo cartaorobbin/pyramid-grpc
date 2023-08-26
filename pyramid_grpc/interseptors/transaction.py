@@ -5,6 +5,8 @@ from grpc_interceptor import ServerInterceptor
 
 
 class TransactionInterseptor(ServerInterceptor):
+    extra_environ: dict | None = None
+
     def __init__(self, registry, extra_environ=None):
         self.registry = registry
         self.extra_environ = extra_environ or {}
@@ -16,11 +18,15 @@ class TransactionInterseptor(ServerInterceptor):
         context: ServicerContext,
         method_name: str,
     ) -> Any:
-        context.pyramid_request.tm.begin()
+        pyramid_request = context.pyramid_request
+        if "tm.active" in pyramid_request.environ:
+            return method(request, context)
+
+        pyramid_request.tm.begin()
         try:
             response = method(request, context)
-            context.pyramid_request.tm.commit()
+            pyramid_request.tm.commit()
         except Exception as e:
-            context.pyramid_request.tm.abort()
+            pyramid_request.tm.abort()
             raise e
         return response

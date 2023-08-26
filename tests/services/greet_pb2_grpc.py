@@ -24,6 +24,16 @@ class GreeterStub:
             request_serializer=tests_dot_services_dot_greet__pb2.HelloRequest.SerializeToString,
             response_deserializer=tests_dot_services_dot_greet__pb2.HelloReply.FromString,
         )
+        self.TransactionSayHello = channel.unary_unary(
+            "/greet.v1.Greeter/TransactionSayHello",
+            request_serializer=tests_dot_services_dot_greet__pb2.HelloRequest.SerializeToString,
+            response_deserializer=tests_dot_services_dot_greet__pb2.HelloReply.FromString,
+        )
+        self.PersistedSayHello = channel.unary_unary(
+            "/greet.v1.Greeter/PersistedSayHello",
+            request_serializer=tests_dot_services_dot_greet__pb2.HelloRequest.SerializeToString,
+            response_deserializer=tests_dot_services_dot_greet__pb2.HelloReply.FromString,
+        )
 
 
 class GreeterServicer:
@@ -41,6 +51,18 @@ class GreeterServicer:
         context.set_details("Method not implemented!")
         raise NotImplementedError("Method not implemented!")
 
+    def TransactionSayHello(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
+
+    def PersistedSayHello(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
+
 
 def add_GreeterServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -51,6 +73,16 @@ def add_GreeterServicer_to_server(servicer, server):
         ),
         "SecureSayHello": grpc.unary_unary_rpc_method_handler(
             servicer.SecureSayHello,
+            request_deserializer=tests_dot_services_dot_greet__pb2.HelloRequest.FromString,
+            response_serializer=tests_dot_services_dot_greet__pb2.HelloReply.SerializeToString,
+        ),
+        "TransactionSayHello": grpc.unary_unary_rpc_method_handler(
+            servicer.TransactionSayHello,
+            request_deserializer=tests_dot_services_dot_greet__pb2.HelloRequest.FromString,
+            response_serializer=tests_dot_services_dot_greet__pb2.HelloReply.SerializeToString,
+        ),
+        "PersistedSayHello": grpc.unary_unary_rpc_method_handler(
+            servicer.PersistedSayHello,
             request_deserializer=tests_dot_services_dot_greet__pb2.HelloRequest.FromString,
             response_serializer=tests_dot_services_dot_greet__pb2.HelloReply.SerializeToString,
         ),
@@ -109,6 +141,64 @@ class Greeter:
             request,
             target,
             "/greet.v1.Greeter/SecureSayHello",
+            tests_dot_services_dot_greet__pb2.HelloRequest.SerializeToString,
+            tests_dot_services_dot_greet__pb2.HelloReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+        )
+
+    @staticmethod
+    def TransactionSayHello(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            "/greet.v1.Greeter/TransactionSayHello",
+            tests_dot_services_dot_greet__pb2.HelloRequest.SerializeToString,
+            tests_dot_services_dot_greet__pb2.HelloReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+        )
+
+    @staticmethod
+    def PersistedSayHello(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            "/greet.v1.Greeter/PersistedSayHello",
             tests_dot_services_dot_greet__pb2.HelloRequest.SerializeToString,
             tests_dot_services_dot_greet__pb2.HelloReply.FromString,
             options,

@@ -17,9 +17,10 @@ def _make_request(registry):
 
 
 class RequestInterseptor(ServerInterceptor):
-    def __init__(self, registry, extra_environ=None):
+    extra_environ: dict | None = None
+
+    def __init__(self, registry):
         self.pyramid_regsitry = registry
-        self.extra_environ = extra_environ or {}
 
     def intercept(
         self,
@@ -29,7 +30,9 @@ class RequestInterseptor(ServerInterceptor):
         method_name: str,
     ) -> Any:
         pyramid_request = _make_request(self.pyramid_regsitry)
-        pyramid_request.environ.update(self.extra_environ)
+
+        pyramid_request.environ.update(self.extra_environ or {})
+
         auth = _get_authorization(
             context.invocation_metadata(), self.pyramid_regsitry.settings.get("grpc.auth_header", "authorization")
         )

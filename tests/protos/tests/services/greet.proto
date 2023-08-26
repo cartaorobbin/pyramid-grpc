@@ -7,6 +7,8 @@ package greet.v1;
 service Greeter {
     rpc SayHello (HelloRequest) returns (HelloReply) {}
     rpc SecureSayHello (HelloRequest) returns (HelloReply) {}
+    rpc TransactionSayHello (HelloRequest) returns (HelloReply) {}
+    rpc PersistedSayHello (HelloRequest) returns (HelloReply) {}
 }
 
 message HelloRequest {
