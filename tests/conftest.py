@@ -4,7 +4,7 @@ from pyramid.config import Configurator
 
 import tests.models as models
 from tests.a10n import SecurityPolicy
-from tests.plugins.grpc_fixtures import GrpcTestApp
+
 
 pytest_plugins = [
     "tests.plugins.jwt_fixtures",
@@ -106,6 +106,8 @@ def grpc_testapp(
         "tm.manager": tm,
         "app.dbsession": dbsession,
     }
+
+    from tests.plugins.grpc_fixtures import GrpcTestApp
 
     testapp = GrpcTestApp(
         app,
