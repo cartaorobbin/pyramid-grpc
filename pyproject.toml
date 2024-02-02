@@ -120,4 +120,10 @@ extend_exclude = [
     ".venv",
     ".tox"
 ]
+ignore_missing = [
+    "paste"
+]
+ignore_obsolete = [
+    "grpcio-reflection"
+]
 

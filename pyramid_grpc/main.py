@@ -1,6 +1,7 @@
 import logging
 
 import click
+from paste.deploy.config import PrefixMiddleware
 from pyramid.paster import bootstrap, setup_logging
 
 logger = logging.getLogger(__name__)
@@ -28,6 +29,10 @@ def main(ini_location):
 @click.argument("ini_location")
 def run(ini_location):
     app = main(ini_location)
+
+    if isinstance(app, PrefixMiddleware):
+        app = app.app
+
     grpc_server = app.registry.grpc_server
     grpc_server.start()
     grpc_server.wait_for_termination()

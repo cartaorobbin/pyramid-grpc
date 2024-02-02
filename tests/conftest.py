@@ -5,7 +5,6 @@ from pyramid.config import Configurator
 import tests.models as models
 from tests.a10n import SecurityPolicy
 
-
 pytest_plugins = [
     "tests.plugins.jwt_fixtures",
     "tests.plugins.grpc_fixtures",

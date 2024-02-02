@@ -55,8 +55,8 @@ def register_server(config, server: grpc.Server = None):
     )
 
     port = config.registry.settings.get("grpc.port", "50051")
-    
-    logger.info(f'add_insecure_port: {port}')
+
+    logger.info(f"add_insecure_port: {port}")
 
     server.add_insecure_port(f"[::]:{port}")
 
