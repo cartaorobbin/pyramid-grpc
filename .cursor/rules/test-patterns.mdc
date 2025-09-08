@@ -1,0 +1,312 @@
+---
+alwaysApply: true
+---
+# gRPC Testing Patterns for pyramid-grpc
+
+## 🎯 Use pytest-grpc for gRPC Service Testing
+
+**ALWAYS use pytest-grpc fixtures for testing gRPC services.** This is the standardized way to test gRPC services in the pyramid-grpc project.
+
+### 1. Basic gRPC Service Test
+```python
+import pytest
+from pytest_grpc import grpc_channel, grpc_server
+
+@pytest.fixture
+def grpc_add_to_server():
+    """Register the gRPC service with the test server."""
+    from tests.services.greet_pb2_grpc import add_GreeterServicer_to_server
+    return add_GreeterServicer_to_server
+
+@pytest.fixture
+def grpc_servicer():
+    """Create the gRPC service instance."""
+    from tests.services.greet import GreetService
+    from pyramid.testing import DummyRequest
+    return GreetService(DummyRequest())
+
+def test_basic_grpc_call(grpc_channel, grpc_stub):
+    """Test basic gRPC service call."""
+    from tests.services.greet_pb2 import HelloRequest
+    
+    request = HelloRequest(name="World")
+    response = grpc_stub.SayHello(request)
+    
+    assert response.message == "Hello World!"
+```
+
+### 2. Test with Pyramid Authentication Context
+```python
+@pytest.fixture
+def authenticated_grpc_servicer():
+    """Create gRPC servicer with authenticated Pyramid request."""
+    from pyramid.testing import DummyRequest
+    from tests.services.greet import GreetService
+    
+    request = DummyRequest()
+    request.authenticated_userid = "testuser"
+    request.effective_principals = [
+        'system.Everyone', 
+        'system.Authenticated', 
+        'role:user'
+    ]
+    
+    return GreetService(request)
+
+def test_authenticated_grpc_call(grpc_channel):
+    """Test gRPC service with authenticated user."""
+    from tests.services.greet_pb2_grpc import GreeterStub
+    from tests.services.greet_pb2 import HelloRequest
+    
+    stub = GreeterStub(grpc_channel)
+    request = HelloRequest(name="World")
+    response = stub.SayHello(request)
+    
+    assert "testuser" in response.message
+```
+
+### 3. Test gRPC Error Handling
+```python
+def test_grpc_authentication_error(grpc_channel, grpc_stub):
+    """Test gRPC service authentication error handling."""
+    import grpc
+    from tests.services.greet_pb2 import HelloRequest
+    
+    request = HelloRequest(name="World")
+    
+    with pytest.raises(grpc.RpcError) as exc_info:
+        grpc_stub.SecureMethod(request)
+    
+    assert exc_info.value.code() == grpc.StatusCode.UNAUTHENTICATED
+    assert "Authentication required" in exc_info.value.details()
+
+def test_grpc_permission_error(grpc_channel, grpc_stub):
+    """Test gRPC service permission error handling."""
+    import grpc
+    from tests.services.greet_pb2 import AdminRequest
+    
+    request = AdminRequest(action="delete")
+    
+    with pytest.raises(grpc.RpcError) as exc_info:
+        grpc_stub.AdminMethod(request)
+    
+    assert exc_info.value.code() == grpc.StatusCode.PERMISSION_DENIED
+    assert "admin" in exc_info.value.details().lower()
+```
+
+### 4. Test gRPC Interceptors
+```python
+def test_grpc_interceptor_authentication():
+    """Test gRPC interceptor authentication logic."""
+    from pyramid_grpc.interceptors.request import AuthInterceptor
+    from pyramid.testing import DummyRequest
+    
+    # Create mock gRPC context
+    class MockContext:
+        def __init__(self):
+            self.metadata = {}
+            self.status_code = None
+            self.details = None
+        
+        def invocation_metadata(self):
+            return self.metadata.items()
+        
+        def set_code(self, code):
+            self.status_code = code
+        
+        def set_details(self, details):
+            self.details = details
+    
+    pyramid_request = DummyRequest()
+    interceptor = AuthInterceptor(pyramid_request)
+    context = MockContext()
+    
+    # Test without JWT token
+    context.metadata = {}
+    result = interceptor.intercept(None, None, context, "SecureMethod")
+    
+    assert context.status_code == grpc.StatusCode.UNAUTHENTICATED
+    assert result is None
+```
+
+### 5. Test with Custom gRPC Metadata
+```python
+def test_grpc_with_custom_metadata(grpc_channel):
+    """Test gRPC service with custom metadata."""
+    from tests.services.greet_pb2_grpc import GreeterStub
+    from tests.services.greet_pb2 import HelloRequest
+    
+    stub = GreeterStub(grpc_channel)
+    request = HelloRequest(name="World")
+    
+    # Add custom metadata
+    metadata = [
+        ('authorization', 'Bearer jwt-token'),
+        ('user-id', 'user123'),
+        ('request-id', 'req-456')
+    ]
+    
+    response = stub.SayHello(request, metadata=metadata)
+    
+    assert response.message == "Hello World!"
+    # Verify metadata was processed correctly
+```
+
+## 🔧 gRPC Test Fixture Patterns
+
+### Standard gRPC Test Setup
+```python
+# conftest.py - Standard fixtures for gRPC testing
+
+import pytest
+from pyramid.testing import DummyRequest
+
+@pytest.fixture
+def pyramid_request():
+    """Basic Pyramid request for gRPC services."""
+    return DummyRequest()
+
+@pytest.fixture
+def authenticated_pyramid_request():
+    """Authenticated Pyramid request for gRPC services."""
+    request = DummyRequest()
+    request.authenticated_userid = "testuser"
+    request.effective_principals = [
+        'system.Everyone',
+        'system.Authenticated', 
+        'role:user'
+    ]
+    return request
+
+@pytest.fixture
+def admin_pyramid_request():
+    """Admin Pyramid request for gRPC services."""
+    request = DummyRequest()
+    request.authenticated_userid = "admin"
+    request.effective_principals = [
+        'system.Everyone',
+        'system.Authenticated',
+        'role:admin'
+    ]
+    return request
+
+@pytest.fixture
+def grpc_servicer_factory():
+    """Factory for creating gRPC servicers with different contexts."""
+    def _create_servicer(service_class, pyramid_request=None):
+        if pyramid_request is None:
+            pyramid_request = DummyRequest()
+        return service_class(pyramid_request)
+    return _create_servicer
+```
+
+## 🏆 Testing Best Practices
+
+### 1. Test Structure
+- ✅ **One test per gRPC method** - Each test should focus on one service method
+- ✅ **Use descriptive test names** - Include the scenario and expected outcome
+- ✅ **Test both success and error cases** - Cover happy path and error conditions
+- ✅ **Use proper gRPC status codes** - Verify correct status codes are returned
+
+### 2. Fixture Usage
+- ✅ **Use pytest-grpc fixtures** - Leverage grpc_channel, grpc_server, grpc_stub
+- ✅ **Create reusable servicer fixtures** - For different authentication states
+- ✅ **Mock Pyramid request context** - Use DummyRequest for service context
+- ✅ **Test interceptors separately** - Unit test interceptor logic independently
+
+### 3. Error Testing Patterns
+```python
+# ✅ GOOD - Test specific error conditions
+def test_unauthenticated_access_returns_unauthenticated():
+    """Test that unauthenticated access returns UNAUTHENTICATED status."""
+    # Test implementation
+
+def test_insufficient_permissions_returns_permission_denied():
+    """Test that insufficient permissions return PERMISSION_DENIED status."""
+    # Test implementation
+
+# ❌ BAD - Generic error test
+def test_errors():
+    """Test various error conditions."""
+    # Too broad, hard to debug failures
+```
+
+### 4. Metadata Testing
+```python
+# ✅ GOOD - Test metadata handling
+def test_jwt_token_extraction_from_metadata():
+    """Test that JWT tokens are correctly extracted from gRPC metadata."""
+    metadata = [('authorization', 'Bearer valid-jwt')]
+    # Test JWT extraction logic
+
+def test_invalid_metadata_handling():
+    """Test handling of invalid or malformed metadata."""
+    metadata = [('authorization', 'Invalid token')]
+    # Test error handling
+```
+
+## 🚫 Anti-Patterns to Avoid
+
+### 1. Don't Mock gRPC Framework Components
+```python
+# ❌ BAD - Mocking gRPC internals
+@patch('grpc.server')
+def test_bad_grpc_mock(mock_server):
+    # Don't mock gRPC framework components
+    pass
+
+# ✅ GOOD - Use pytest-grpc fixtures
+def test_good_grpc_test(grpc_channel, grpc_stub):
+    # Use proper test fixtures
+    pass
+```
+
+### 2. Don't Test Implementation Details
+```python
+# ❌ BAD - Testing internal implementation
+def test_internal_method_calls():
+    service = GreetService(DummyRequest())
+    # Don't test internal method calls or private attributes
+    assert service._internal_method() == "something"
+
+# ✅ GOOD - Test public interface
+def test_public_grpc_interface(grpc_stub):
+    response = grpc_stub.SayHello(HelloRequest(name="World"))
+    assert response.message == "Hello World!"
+```
+
+### 3. Don't Use Conditional Logic in Tests
+```python
+# ❌ BAD - Conditional logic in tests
+def test_conditional_behavior(grpc_stub):
+    response = grpc_stub.SayHello(HelloRequest(name="World"))
+    if response.message:
+        assert "Hello" in response.message
+    else:
+        assert response.error_code == "ERROR"
+
+# ✅ GOOD - Separate tests for different scenarios
+def test_successful_greeting_returns_message(grpc_stub):
+    response = grpc_stub.SayHello(HelloRequest(name="World"))
+    assert response.message == "Hello World!"
+
+def test_error_condition_returns_error_code(grpc_stub):
+    # Set up error condition
+    response = grpc_stub.SayHello(HelloRequest(name=""))
+    assert response.error_code == "INVALID_NAME"
+```
+
+## 📋 Test Checklist
+
+Before submitting gRPC service tests:
+
+- [ ] All gRPC methods have tests
+- [ ] Error conditions are tested with proper status codes
+- [ ] Authentication and authorization are tested
+- [ ] Interceptors are tested independently
+- [ ] Metadata handling is tested
+- [ ] No conditional logic in tests
+- [ ] Tests use pytest-grpc fixtures
+- [ ] Pyramid request context is properly mocked
+- [ ] Test names are descriptive and specific
+- [ ] Both success and failure cases are covered

@@ -1,0 +1,297 @@
+---
+alwaysApply: true
+---
+# Development Environment Setup Rules
+
+This document outlines the development environment setup rules for the pyramid-grpc project. We support two primary development environments: **local development with direnv + pyenv** and **devcontainer development**.
+
+## ⚡ Quick Start (Recommended)
+
+**For most developers, this is all you need:**
+
+```bash
+# 1. Clone the repository and navigate to it
+cd pyramid-grpc
+
+# 2. Install dependencies
+make install
+
+# 3. Verify everything works
+make test
+```
+
+**That's it!** The setup handles Python version validation, virtual environment creation, Poetry installation, dependency management, and pre-commit hooks.
+
+## 🎯 Project Requirements
+
+**This project requires:**
+
+- ✅ **Python 3.8+**: Minimum Python version for compatibility
+- ✅ **Poetry**: Dependency management and virtual environments
+- ✅ **gRPC Tools**: Protocol buffer compilation and gRPC development
+- ✅ **Pre-commit**: Code quality and formatting hooks
+- ✅ **pytest-grpc**: gRPC service testing framework
+
+**Standard Python development setup with gRPC-specific tooling!** 🎯
+
+---
+
+## Environment Options
+
+### Option 1: Local Development (Recommended for most developers)
+- **Use when**: You want full control over your environment and faster iteration
+- **Requirements**: pyenv, direnv, poetry
+- **Pros**: Fast, flexible, native performance
+- **Cons**: Requires local tool installation and configuration
+
+### Option 2: Devcontainer Development
+- **Use when**: You want consistent environments across team members or have limited local setup options
+- **Requirements**: Docker, VS Code with devcontainer extension
+- **Pros**: Consistent, isolated, minimal local setup
+- **Cons**: Slightly slower, requires Docker knowledge
+
+## Local Development Setup with direnv + pyenv
+
+### Prerequisites
+Before starting, ensure you have:
+- [pyenv](mdc:ai/ai/ai/ai/ai/ai/ai/ai/https:/github.com/pyenv/pyenv) installed and configured
+- [direnv](mdc:ai/ai/ai/ai/ai/ai/ai/ai/https:/direnv.net) installed and configured
+- Poetry will be installed automatically by our setup script
+
+### Python Version Detection
+The project uses Python version specified in `pyproject.toml`. Currently requires:
+- **Minimum**: Python 3.8
+- **Supported**: Python 3.8, 3.9, 3.10, 3.11, 3.12
+
+### Automated Setup Process
+
+The standard setup process handles common development environment configuration:
+
+#### What `make install` Does Automatically:
+
+1. **🐍 Python Version Validation**
+   - Extracts required Python version from `pyproject.toml` 
+   - Validates your current Python version is compatible (≥3.8)
+   - Clear error messages if version incompatible
+
+2. **🏗️ Virtual Environment Management**
+   - Uses Poetry to manage virtual environments
+   - Installs dependencies in isolated environment
+   - Configures development tools properly
+
+3. **📦 Dependencies Installation**
+   - Installs all production dependencies
+   - Installs development dependencies (pytest, mypy, etc.)
+   - Installs gRPC-specific tools (grpcio-tools, pytest-grpc)
+
+4. **🔧 Development Tools Setup**
+   - Installs and configures pre-commit hooks
+   - Sets up code formatting (black, ruff)
+   - Configures type checking (mypy)
+
+5. **✅ Verification**
+   - Runs basic validation checks
+   - Ensures all tools are properly installed
+   - Ready for development and testing
+
+#### Poetry Environment Management:
+
+Poetry handles virtual environment management automatically:
+- **Automatic activation**: `poetry shell` activates the environment
+- **Dependency isolation**: Each project has its own virtual environment
+- **Cross-platform**: Works consistently across different operating systems
+- **Lock file**: `poetry.lock` ensures reproducible builds
+
+### Environment Reset Instructions
+
+**When to reset environment:**
+- Switching Python versions
+- Dependency conflicts
+- New team member setup
+- After major Poetry updates
+
+**Steps to reset:**
+- Remove existing virtual environment: `poetry env remove python`
+- Clear Poetry cache: `poetry cache clear --all pypi`
+- Reinstall: `make install`
+- Verify setup: `make test`
+
+## Devcontainer Development Setup
+
+### Prerequisites
+- [Docker](mdc:ai/ai/ai/ai/ai/ai/ai/ai/ai/ai/ai/https:/docs.docker.com/get-docker) installed
+- [VS Code](mdc:ai/ai/ai/ai/ai/ai/ai/ai/ai/ai/ai/https:/code.visualstudio.com) with [Dev Containers extension](mdc:ai/ai/ai/ai/ai/ai/ai/ai/ai/ai/ai/https:/marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+
+### Configuration Files Required
+
+#### .devcontainer/devcontainer.json
+- Use official Microsoft Python devcontainer image (Python 3.11)
+- Install Poetry in postCreateCommand
+- Include essential VS Code extensions for Python development
+- Set remoteUser to "vscode"
+
+### Setup Process
+- Open VS Code in project directory
+- Use Command Palette: "Dev Containers: Reopen in Container"
+- Wait for container build and setup
+- Verify with Poetry and make test
+
+### Poetry in Devcontainer
+- **Works seamlessly**: Poetry works the same in containers and local environments
+- **Automatic setup**: Container can run `poetry install` during build
+- **Consistent dependencies**: `poetry.lock` ensures identical dependencies
+- **Environment detection**: Use `$DEVCONTAINER` or `$CODESPACES` for container-specific configuration
+
+## Environment Validation
+
+### Python Version Validation
+- Extract required Python version from pyproject.toml
+- Compare with current Python version
+- Fail if current version is below minimum requirement
+- Provide clear success/failure messages
+
+### Full Environment Validation
+- Detect environment type (local vs devcontainer)
+- Validate Python version
+- Check Poetry installation
+- Verify virtual environment (local only)
+- Test dependency installation
+- Run basic test suite
+
+## .gitignore Configuration
+
+### Required .gitignore Entries
+**Virtual environments and caches should be ignored:**
+
+Add to .gitignore:
+- `.venv/` - Poetry virtual environments
+- `__pycache__/` - Python bytecode cache
+- `*.pyc` - Compiled Python files
+- `.pytest_cache/` - Pytest cache
+- `.mypy_cache/` - MyPy cache
+- `dist/` - Build artifacts
+- `*.egg-info/` - Package metadata
+
+### Why These Should Be Ignored
+1. **Environment-specific**: Virtual environments are machine-specific
+2. **Generated files**: Caches and compiled files can be regenerated
+3. **Size**: Virtual environments can be very large
+4. **Reproducibility**: `poetry.lock` ensures consistent dependencies across environments
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+**Most issues are solved by re-running the setup:**
+
+```bash
+make install           # Fixes most environment issues
+poetry shell          # Activate environment manually if needed
+```
+
+#### Specific Issues:
+
+#### "pyenv: pyramid-grpc: command not found"
+**Problem**: Virtual environment not created or activated
+**Solution**: 
+```bash
+make install          # Creates and configures the virtual environment
+poetry shell         # Activate the environment manually
+```
+
+#### "Virtual environment not found"
+**Problem**: Poetry can't find the virtual environment
+**Solution**: 
+```bash
+poetry env info          # Check current environment
+poetry install          # Recreate if needed
+```
+
+#### "Poetry not found" or "Command not found: poetry"
+**Problem**: Poetry not installed in the virtual environment
+**Solution**: 
+```bash
+make install          # Installs Poetry and dependencies
+```
+
+#### "Python version mismatch"
+**Problem**: Wrong Python version active
+**Solution**: 
+```bash
+# Install correct Python version
+pyenv install 3.10.15  # or latest 3.8+
+make install           # Use correct version automatically
+```
+
+#### "Dependencies out of sync" or test failures
+**Problem**: Dependencies not properly installed
+**Solution**: 
+```bash
+make install           # Installs all dependencies including dev deps
+```
+
+### Environment Reset Procedure
+When all else fails, completely reset your environment:
+- Remove virtual environment (local only)
+- Remove .envrc
+- Clear Poetry cache
+- Reinstall Python version (local only)
+- Recreate environment
+- Recreate .envrc
+- Reinstall dependencies
+- Validate setup
+
+## Quick Reference Commands
+
+### Local Development Setup (New Developer)
+```bash
+# One-time setup
+make install           # Install dependencies and setup environment
+make test              # Verify everything works
+```
+
+### Daily Development Workflow
+```bash
+# Activate the Poetry environment
+cd pyramid-grpc       # Navigate to project
+poetry shell          # Activate virtual environment
+
+# Standard development commands
+make check             # Format and lint code
+make test              # Run test suite
+poetry add package     # Add new dependencies  
+poetry run pytest -k "test_name"  # Run specific tests
+```
+
+### Troubleshooting Commands
+```bash
+# Environment validation
+python --version              # Should show Python 3.8+
+poetry --version             # Should show Poetry 2.x  
+poetry run pre-commit --version  # Should work
+which python                 # Should point to pyenv shims
+
+# Reset if needed
+make install                # Re-run setup
+poetry env info            # Check environment info
+pyenv versions              # Check virtual environments
+```
+
+### Devcontainer
+- Setup: Open in VS Code, reopen in container
+- Daily workflow: poetry install, make test/check
+
+---
+
+## Decision Matrix
+
+| Factor | Local Dev | Devcontainer |
+|--------|-----------|--------------|
+| Setup Speed | Medium | Slow (first time) |
+| Performance | Fast | Medium |
+| Consistency | Medium | High |
+| Customization | High | Medium |
+| Isolation | Medium | High |
+| Offline Work | Good | Limited |
+
+**Recommendation**: Start with local development for speed and flexibility. Use devcontainer for consistency across team members or when local setup is problematic.
