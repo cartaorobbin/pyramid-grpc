@@ -1,0 +1,46 @@
+---
+description: Ask the user at the start of every new chat whether to follow the full development workflow
+alwaysApply: true
+---
+
+# Chat-Start Triage
+
+At the **very beginning** of every new chat, before doing anything else, check for in-progress work:
+
+1. Run `git branch --show-current`
+2. If the branch is **not** `main`, `master`, or `develop`, use the **Resume-Aware Triage**.
+3. Otherwise, use the **Standard Triage**.
+
+## Standard Triage
+
+Use the `AskQuestion` tool:
+
+title: "Chat Mode"
+prompt: "Should this chat follow the full development workflow?"
+options:
+  - id: full
+    label: "Yes — full dev workflow (planning, branching, PRs, quality checks)"
+  - id: quick
+    label: "No — quick task / exploration (skip workflow steps, keep code quality rules)"
+
+## Resume-Aware Triage
+
+Use the `AskQuestion` tool, including the detected branch name:
+
+title: "Chat Mode"
+prompt: "You're on branch `<branch-name>`. Want to continue this work or start something new?"
+options:
+  - id: continue
+    label: "Continue current work (resume dev workflow on this branch)"
+  - id: full
+    label: "Start a new dev workflow (different issue)"
+  - id: quick
+    label: "Quick task / exploration (skip workflow steps, keep code quality rules)"
+
+## Behavior Based on Answer
+
+**Continue current work** (`continue`): Read `.agents/skills/dev-workflow/SKILL.md` and follow its **Resume** section — the agent will extract the issue from the branch name, fetch context, and pick up where the previous chat left off. Also enforce all rules from `.agents/rules/quality.md`.
+
+**Full dev workflow** (`full`): Read and follow `.agents/skills/dev-workflow/SKILL.md` from Step 1 — planning before coding, feature branches, incremental commits, PR process. Also enforce all rules from `.agents/rules/quality.md`.
+
+**Quick task / exploration** (`quick`): Skip the structured workflow steps (mandatory planning phase, feature branches, PRs, release process). Still enforce all code quality rules defined in `.agents/rules/quality.md`.

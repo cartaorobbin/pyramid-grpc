@@ -66,6 +66,37 @@ def app_config(private_key, public_key):
     return config
 
 
+@pytest.fixture
+def pyramid_app_with_views(dbengine, app_config, _grpc_server):
+    """Create a Pyramid app with custom views for testing.
+
+    Usage in tests:
+        def test_something(pyramid_app_with_views):
+            views = [(view_func, route_name, route_pattern, request_method), ...]
+            app = pyramid_app_with_views(views)
+            # test code here
+
+    Args:
+        views: List of tuples (view_func, route_name, route_pattern, request_method)
+
+    Returns:
+        Function that creates WSGI app with the provided views
+    """
+
+    def _create_app_with_views(views):
+        config = app_config
+
+        # Add routes and views
+        for view_func, route_name, route_pattern, request_method in views:
+            config.add_route(route_name, route_pattern)
+            config.add_view(view_func, route_name=route_name, request_method=request_method, renderer="json")
+
+        config.configure_grpc(_grpc_server)
+        return config.make_wsgi_app()
+
+    return _create_app_with_views
+
+
 @pytest.fixture(scope="module")
 def app(dbengine, app_config, _grpc_server):
     app_config.configure_grpc(_grpc_server)
