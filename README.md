@@ -11,6 +11,23 @@ Grpc with pyramid
 - **Github repository**: <https://github.com/tomas_correa/pyramid-grpc/>
 - **Documentation** <https://tomas_correa.github.io/pyramid-grpc/>
 
+## Logging failed client RPCs
+
+Outbound channels are separate from the Pyramid server. Wrap the channel you open so a failed unary call logs one line: method, status, and the application frame that made the call.
+
+```python
+import grpc
+
+from pyramid_grpc.interseptors.client import RpcFailureLog, rpc_status_line
+
+raw = grpc.insecure_channel(url)
+channel = grpc.intercept_channel(raw, RpcFailureLog(source_prefix="data_services/"))
+```
+
+`rpc_status_line` formats a `grpc.RpcError` as `PERMISSION_DENIED: Permission Denied` for logs and stored failure rows. The grpc debug dump is not included.
+
+`source_prefix` shortens the caller path. Omit it to keep the path `inspect` recorded.
+
 ## Getting started with your project
 
 First, create a repository on GitHub with the same name as this project, and then run the following commands:
