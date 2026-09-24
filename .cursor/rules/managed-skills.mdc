@@ -1,0 +1,40 @@
+---
+description: Managed skills and rules are read-only — customize via overrides, not edits
+alwaysApply: true
+---
+
+# Managed Skills and Rules Are Read-Only
+
+Skills inside directories that contain a `.managed-skill.md` file are externally managed. **Do not modify, rename, or delete any files** in these directories.
+
+Installed Cursor rules (`<name>.mdc` shipped by this repo, or the equivalent `<name>.md` in `.claude/rules/`) are also managed. **Do not edit those files.**
+
+If the user asks to change a managed skill, explain that it is managed from an external source and suggest:
+- Running "update my skills" to pull the latest version
+- Creating a new separate skill for project-specific customizations
+
+## Rules override slot
+
+For a managed rule `<name>.mdc` (or `<name>.md`), put project-specific policy in a sibling file:
+
+- Cursor: `<name>.overrides.mdc`
+- Claude Code: `<name>.overrides.md`
+
+Examples: `quality.overrides.mdc`, `pyramid-developer.overrides.mdc`, `test-patterns.overrides.mdc`.
+
+Match the parent rule's `alwaysApply` / `globs` (Cursor) or `paths` (Claude). **Do not invent a new always-applied rule to extend a managed one. Do not edit the managed rule.**
+
+When applying instructions from a managed rule, check whether a corresponding override file exists in the same rules directory. If it does, its instructions take precedence over any conflicting instructions in the managed rule. Non-conflicting instructions from the managed rule still apply.
+
+Override files are project-owned and are never modified by skill updates.
+
+Example `quality.overrides.mdc`:
+
+    ---
+    description: Project overrides for quality rule
+    alwaysApply: true
+    ---
+
+    # Quality Overrides
+
+    Type hints are optional for files under `migrations/` and `generated/`.
