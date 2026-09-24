@@ -31,7 +31,7 @@ One markdown file per feature area (e.g., `knowledge/auth.md`, `knowledge/billin
 
 ## What Does NOT Belong
 
-- Task lists, progress tracking, or backlog items. If the project has a `planning/` directory, leave it alone — do not copy current tasks into `knowledge/`.
+- Task lists, progress tracking, or backlog items. Those belong in the Cursor plan, not in `knowledge/`.
 - Changelogs or timestamps — knowledge files describe the present, not the history.
 - Documentation for end users — that lives in `docs/`.
 
