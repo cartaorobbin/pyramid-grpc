@@ -2,7 +2,6 @@
 description: Managed skills and rules are read-only — customize via overrides, not edits
 ---
 
-
 # Managed Skills and Rules Are Read-Only
 
 Skills inside directories that contain a `.managed-skill.md` file are externally managed. **Do not modify, rename, or delete any files** in these directories.

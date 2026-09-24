@@ -16,18 +16,14 @@ This document outlines the development rules and guidelines for the pyramid-grpc
 - **Review existing code**: Understand how your changes fit into the existing codebase
 - **Break down complex tasks**: Split large features into smaller, manageable pieces
 
-### 2. Task Management with Planning Files ⭐
-**ALWAYS maintain planning files to track what we did.**
+### 2. Task Management with Cursor Plans ⭐
+**ALWAYS use the default Cursor plan to track what we are doing.**
 
-- **Organized structure**: Use `planning/` directory for all planning files
-- **Active vs Backlog**: Use `planning/general.md` for CURRENT tasks being worked on, `planning/backlog.md` for planned future tasks
-- **Task Flow**: Move tasks from `planning/backlog.md` → `planning/general.md` → `planning/done.md` as they progress
-- **Focus Management**: Keep `planning/general.md` focused (max 1-3 active task groups)
-- **Create/update files**: Before starting any work, document what you plan to do in the appropriate planning file
-- **Track progress**: Update the files as you complete tasks
-- **Document decisions**: Record important decisions and why they were made
-- **Include completion status**: Mark tasks as TODO, IN PROGRESS, DONE, or BLOCKED
-- **Reference issues/PRs**: Link to relevant GitHub issues or pull requests
+- **Cursor plan**: Create and update the plan in Cursor before coding.
+- **Get approval**: Do not start coding until the plan is approved.
+- **Track progress**: Update the plan todos as tasks move forward.
+- **Document decisions**: Record important decisions and why they were made in the plan.
+- **Reference issues/PRs**: Link to relevant GitHub issues or pull requests.
 
 ## Code Quality Standards
 
@@ -35,8 +31,7 @@ This document outlines the development rules and guidelines for the pyramid-grpc
 Before starting any development work:
 
 - [ ] Read and understand the requirement
-- [ ] Create or update appropriate planning file with your planned work
-- [ ] Add new tasks to `planning/backlog.md`, move to `planning/general.md` when starting active work
+- [ ] Create or update the Cursor plan with the planned work
 - [ ] Check existing issues and PRs for related work
 - [ ] Plan your approach and get feedback if needed
 - [ ] Ensure your development environment is set up (`make install`)
@@ -72,8 +67,8 @@ Before starting any development work:
    - **Always run tests**: Execute relevant test suites before marking tasks complete
    - **Fix failing tests**: Address any test failures before task completion
    - **Verify no regressions**: Run existing test suites to ensure no breaking changes
-   - **Update planning files**: Only mark tasks as DONE after successful test validation
-   - **Document test results**: Include test pass/fail status in planning files
+   - **Update the Cursor plan**: Only mark tasks as DONE after successful test validation
+   - **Document test results**: Include test pass/fail status in the Cursor plan
    
    ```bash
    # Required before marking any task as DONE
@@ -116,9 +111,9 @@ Closes #123
 
 ### Before Creating a PR
 
-- [ ] Update appropriate planning file with completed work
+- [ ] Update the Cursor plan with completed work
 - [ ] **All tests pass locally** (new functionality + regression tests)
-- [ ] **Test results documented** in planning files
+- [ ] **Test results documented** in the Cursor plan
 - [ ] Code quality checks pass (`make check`)
 - [ ] Documentation is updated if needed
 - [ ] Commit messages are clear and descriptive
@@ -154,83 +149,25 @@ Closes #123
 ## Documentation
 - [ ] Code is documented
 - [ ] README updated if needed
-- [ ] Planning files updated
+- [ ] Cursor plan updated
 ```
 
 ## File Organization
 
 ### Required Files for Each Feature/Bug Fix
 
-1. **Planning files** - Track what you're doing and have done in `planning/` directory
-2. **Tests** - In the `tests/` directory  
+1. **Cursor plan** - Track the work in the default Cursor plan.
+2. **Tests** - In the `tests/` directory
 3. **Documentation** - Update relevant docs
 
-### Planning File Structure
+### Cursor Plan
 
-The `planning/` directory contains all task tracking and planning files:
+Use Cursor's built-in plan for the current task:
 
-- **`planning/general.md`** - CURRENT/ACTIVE tasks being worked on right now (max 1-3 task groups)
-- **`planning/backlog.md`** - PLANNED future tasks, prioritized and ready for development
-- **`planning/done.md`** - COMPLETED project tasks for historical reference
-- **`planning/[feature-name].md`** - Feature-specific planning and tasks
-- **`planning/feature-template.md`** - Template for creating new feature files
-- **`planning/README.md`** - Documentation for the planning system
-
-### When to Use Which Planning File
-
-**Use `planning/general.md` for:**
-- CURRENT tasks actively being worked on  
-- IN PROGRESS development work
-- Immediate priority tasks
-- Keep focused (max 1-3 active task groups)
-
-**Use `planning/backlog.md` for:**
-- PLANNED future tasks and features
-- TODO tasks not yet started
-- Prioritized development pipeline
-- Feature requirements and planning
-
-**Move to `planning/done.md` when:**
-- Tasks are marked as DONE ✅
-- **Implementation is complete AND all tests pass**
-- **Test results are documented in planning files**
-- Work is ready for archival reference
-
-**Create `planning/[feature-name].md` for:**
-- Features taking more than 1 day
-- Complex features with multiple tasks
-- Features requiring team coordination
-- Features with dependencies or special requirements
-
-### Planning File Template
-
-See `planning/feature-template.md` for the complete template, or use this basic structure:
-
-```markdown
-### [YYYY-MM-DD] Task Description
-
-**Status**: TODO | IN PROGRESS | DONE | BLOCKED
-**Assigned**: Your Name
-**Estimated Time**: X hours
-**Related Issue**: #123
-
-#### Plan
-- [ ] Task 1: Description
-- [ ] Task 2: Description
-- [ ] Task 3: Description
-
-#### Progress
-- [x] Completed task with notes
-- [ ] Current task
-- [ ] Future task
-
-#### Decisions Made
-- Decision 1: Reasoning
-- Decision 2: Reasoning
-
-#### Blockers/Issues
-- Issue 1: Description and resolution plan
-```
+- Write the plan before coding and wait for approval.
+- Keep the active plan focused on the work in progress.
+- Mark todos done only after implementation is complete and tests pass.
+- Record test results and important decisions in the plan.
 
 ## Dependency Management and Library Usage ⭐
 
@@ -498,7 +435,7 @@ poetry add --group docs mkdocs        # Documentation dependency
 - [ ] Ensure it's not on the forbidden list
 - [ ] Consider the size and complexity it adds
 - [ ] **Use `poetry add` command** (never edit pyproject.toml manually)
-- [ ] Document the decision in appropriate planning file
+- [ ] Document the decision in the Cursor plan
 
 #### Preferred Libraries by Category
 
@@ -591,7 +528,7 @@ Before requesting review:
 - [ ] Code follows project conventions
 - [ ] All tests pass
 - [ ] Documentation is complete
-- [ ] Planning files are updated
+- [ ] The Cursor plan is updated
 - [ ] No debugging code left behind
 - [ ] Error handling is appropriate
 - [ ] Performance implications considered
@@ -602,19 +539,19 @@ Before requesting review:
 - Focus on design, logic, and maintainability
 - Suggest improvements, don't just point out problems
 - Be constructive and respectful
-- Check that planning files reflect the work done
+- Check that the Cursor plan reflects the work done
 
 **For Authors:**
 - Be open to feedback
 - Explain complex decisions in comments or PR description
-- Update planning files based on review feedback if scope changes
+- Update the Cursor plan based on review feedback if scope changes
 
 ## Emergency/Hotfix Process
 
 Even for urgent fixes:
 
 1. **Still plan first** - Even 5 minutes of planning can prevent bigger issues
-2. **Update planning files** - Document what you're fixing in `planning/general.md` for active work (move to `planning/done.md` when complete)
+2. **Update the Cursor plan** - Document what you're fixing there before coding
 3. **Create hotfix branch**: `hotfix/critical-issue-description`
 4. **Minimal, focused changes** - Fix only what's necessary
 5. **Fast-track review** - Get quick review but don't skip testing
@@ -1106,11 +1043,11 @@ class UserService:
 - Check existing issues first
 - Create detailed issue reports
 - Ask for help early rather than struggling alone
-- Update planning files when blocked with explanation
+- Update the Cursor plan when blocked, with an explanation
 
 ---
 
-**Remember**: These rules exist to make our development process smoother and our code better. When in doubt, plan first and document what you're doing in the appropriate planning file! 
+**Remember**: These rules exist to make our development process smoother and our code better. When in doubt, plan first in the Cursor plan. 
 
 ### gRPC Testing Patterns
 
